@@ -35,4 +35,14 @@ def _prepend_edge(tensor, pad_amt, axis=1):
 
     begin = [0, 0, 0, 0]
     end = [-1, -1, -1, -1]
-    
+    end[axis] = 1
+
+    edges = pad_amt*[tf.slice(tensor, begin, end)]
+    if len(edges) > 1:
+        padding = tf.concat(axis=axis, values=edges)
+    else:
+        padding = edges[0]
+
+    tensor_padded = tf.concat(axis=axis, values=[padding, tensor])
+    return tensor_padded
+
