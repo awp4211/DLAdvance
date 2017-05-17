@@ -47,5 +47,34 @@ def _prepend_edge(tensor, pad_amt, axis=1):
     return tensor_padded
 
 
-def _append_edge():
-    pass
+def _append_edge(tensor, pad_amt, axis=1):
+    """
+    This function is intend to add 'reflective' padding to a 4d Tensor across
+    the height and width dimensions.
+    :param tensor:
+    :param pad_amt:
+    :param axis:
+    :return:
+    """
+    if axis not in (1,2):
+        raise ValueError('Axis must equal 0 or 1.Axis is set to %i' % axis)
+
+    if axis == 1:
+        concat_dim = 2
+    else:
+        concat_dim = 1
+
+    begin = [0, 0, 0, 0]
+    end = [-1, -1, -1, -1]
+    begin[axis] = tf.shape(tensor)[axis]-1
+
+    edges = pad_amt*[tf.slice(tensor, begin, end)]
+
+    if len(edges) > 1:
+        padding = tf.concat(axis=axis, values=edges)
+    else:
+        padding = edges[0]
+
+    tensor_padded = tf.concat(axis=axis, values=[tensor, padding])
+    return tensor_padded
+
