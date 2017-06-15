@@ -177,9 +177,5 @@ def load_from_pkl(dataset_file):
     :param dataset_file:
     :return:
     """
-    X, Y = pickle.load(open(dataset_file), 'rb')
-    return X,Y
-
-
-
-
+    X, Y= pickle.load(open(dataset_file, 'rb'))
+    return X, Y
