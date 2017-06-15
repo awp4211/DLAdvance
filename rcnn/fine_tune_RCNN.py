@@ -45,6 +45,7 @@ def create_alexnet(num_classes, restore=False):
     network = fully_connected(network, 4096, activation='tanh')
     network = dropout(network, 0.5)
 
+    # using restore
     network = fully_connected(network, num_classes, activation='softmax', restore=restore)
     network = regression(network,
                          optimizer='momentum',
@@ -72,19 +73,28 @@ def fine_tune_alexnet(network, X, Y):
     else:
         print("no file to load, error")
         return False
-    model.fit(X, Y, n_epoch=10, validation_set=0.1, shuffle=True,
-              show_metric=True, batch_size=64, snapshot_step=200,
-              snapshot_epoch=False, run_id='alexnet_rcnnflowers2')  # epoch = 1000
+    model.fit(X,
+              Y,
+              n_epoch=10,
+              validation_set=0.1,
+              shuffle=True,
+              show_metric=True,
+              batch_size=64,
+              snapshot_step=200,
+              snapshot_epoch=False,
+              run_id='alexnet_rcnnflowers2')
     # Save the model
     model.save('fine_tune_model_save.model')
 
 
 if __name__ == '__main__':
+    # if we using selective search generate proposal data then load data
     if os.path.isfile('dataset.pkl'):
         print("loading data")
         X, Y = prep.load_from_pkl('dataset.pkl')
     else:
         print("reading data")
+        # loading 2 flowers dataset to fine tuning
         X, Y = prep.load_train_proposals('refine_list.txt', 2, save=True)
     print("done")
     restore = False
