@@ -22,7 +22,7 @@ def create_alexnet(num_classes, restore=False):
     :param restore:
     :return:
     """
-    network = input(shape=[None, 224, 224, 3])
+    network = input_data(shape=[None, 224, 224, 3])
 
     network = conv_2d(network, 96, 11, strides=4, activation='relu')
     network = max_pool_2d(network, 3, strides=2)
