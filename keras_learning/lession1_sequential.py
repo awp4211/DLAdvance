@@ -98,6 +98,9 @@ def vgg_demo():
     model.compile(loss='categorical_crossentropy', optimizer=sgd)
 
     model.fit(x_train, y_train, batch_size=32, epochs=10)
+
+    print model.summary()
+    print model.to_json()
     score = model.evaluate(x_test, y_test, batch_size=32)
 
 
