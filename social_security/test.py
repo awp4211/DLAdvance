@@ -20,7 +20,7 @@ def one_hot_encoder(label, class_count=2):
     return mat.flatten()
 
 
-def train(n_epoch=200, learning_rate=0.001):
+def train(n_epoch=2000, learning_rate=0.001):
     x = tf.placeholder(tf.float32, [None, 10])
     y = tf.placeholder(tf.float32, [None, 2])
 
