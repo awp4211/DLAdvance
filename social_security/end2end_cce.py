@@ -78,12 +78,10 @@ def cluster_2_vec_test(dataset_df,
 
     print '...... to feature vectors ......'
 
-    test_person_ids = set(id_df['个人编码'])
-
     feature_vecs = []
     person_ids = []
 
-    for person_id in tqdm(test_person_ids):
+    for person_id in tqdm(id_df['个人编码']):
         person_pd = dataset_df[dataset_df['个人编码'] == person_id]
         person_vec = np.zeros(num_cluster)
 
@@ -321,16 +319,24 @@ def train_and_test(training_x, training_y, validation_x, validation_y,
             best_epoch = epoch
 
             test_pd = pd.DataFrame(columns=["person_id", "label"])
+            test_ids_set = set()
             # test data
-            for mini_batch in range(int(len(test_x)/batch_size)):
+            for mini_batch in range(int(test_x.shape[0]/batch_size)):
                 _y_pred = sess.run([y_pred], feed_dict={x: test_x[mini_batch*batch_size:(mini_batch+1)*batch_size],
                                                         keep_prob: 1.0})
                 _y_predicted = np.argmax(_y_pred[0], axis=1)
                 for i in range(len(_y_predicted)):
-                    temp_pd = pd.DataFrame(data={"person_id": test_ids[mini_batch*batch_size+i],
+                    test_ids_set.add(test_ids[mini_batch*batch_size+i])
+                    temp_pd = pd.DataFrame(data={"person_id": str(test_ids[mini_batch*batch_size+i]),
                                                  "label": _y_predicted[i]},
                                            index=['0'])
                     test_pd = test_pd.append(temp_pd, ignore_index=True)
+
+            """
+            print len(test_pd['person_id'])
+            print len(set(test_pd['person_id']))
+            print len(test_ids_set)
+            """
 
     print "num_feature=%d, num_fc=%d, learning_rate=%f" % (num_feature, num_fc, learning_rate)
     print "best_f1:%f, best_epoch:%d" % (best_f1, best_epoch)
@@ -379,22 +385,22 @@ if __name__ == '__main__':
 
     # testing data
     test_dataset_df, test_id_df = load_test_df(data_dir=args.data_dir)
+    print len(set(test_id_df['个人编码']))
 
     test_feature_vecs, test_ids = cluster_2_vec_test(test_dataset_df, test_id_df, mbk_model, num_feature)
     test_feature_vecs = normalize(test_feature_vecs, axis=1)
     print test_feature_vecs.shape
-    print len(test_ids)
-
+    print len(set(test_ids))
 
     best_f1, best_epoch, test_pd = train_and_test(training_x, training_y, validation_x, validation_y,
-                                      test_feature_vecs, test_ids,
-                                      num_feature=num_feature,
-                                      num_fc=num_fc,
-                                      learning_rate=learning_rate,
-                                      log_dir=args.log_dir,
-                                      num_epoch=args.num_epoch,
-                                      output=False)
+                                                  test_feature_vecs, test_ids,
+                                                  num_feature=num_feature,
+                                                  num_fc=num_fc,
+                                                  learning_rate=learning_rate,
+                                                  log_dir=args.log_dir,
+                                                  num_epoch=args.num_epoch,
+                                                  output=False)
     path = os.path.join(os.getcwd(), 'data')
-    test_pd.to_csv('%s/%s' % (path, 'result.csv'),
+    test_pd.to_csv('%s/%s' % (path, 'result11.csv'),
                      columns=['person_id', 'label'],
-                     index=False, header=True)
+                     index=False, header=False)
