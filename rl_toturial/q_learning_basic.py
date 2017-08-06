@@ -27,8 +27,10 @@ def build_q_table(n_states, actions):
 def choose_action(state, q_table):
     state_actions = q_table.iloc[state, :]
     if (np.random.uniform() > EPSILON) or (state_actions.all() == 0):
+        #  exploration
         action_name = np.random.choice(ACTIONS)
     else:
+        #  exploitation
         action_name = state_actions.argmax()
     return action_name
 
