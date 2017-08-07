@@ -55,11 +55,15 @@ def train_svm(datas,
     print '...... predict .......'
 
     validation_predict = clf.predict(validation_x)
-    print 'accuracy = {0}'.format(metrics.accuracy_score(y_true=validation_y, y_pred=validation_predict))
-    print 'precision = {0}'.format(metrics.precision_score(y_true=validation_y, y_pred=validation_predict))
-    print 'recall = {0}'.format(metrics.recall_score(y_true=validation_y, y_pred=validation_predict))
-    print 'f1 = {0}'.format(metrics.f1_score(y_true=validation_y, y_pred=validation_predict))
-
+    accuracy = metrics.accuracy_score(y_true=validation_y, y_pred=validation_predict)
+    precision = metrics.precision_score(y_true=validation_y, y_pred=validation_predict)
+    recall = metrics.recall_score(y_true=validation_y, y_pred=validation_predict)
+    f1 = metrics.f1_score(y_true=validation_y, y_pred=validation_predict)
+    print 'accuracy = {0}'.format(accuracy)
+    print 'precision = {0}'.format(precision)
+    print 'recall = {0}'.format(recall)
+    print 'f1 = {0}'.format(f1)
+    return accuracy, precision, recall, f1
 
 
 if __name__ == '__main__':
@@ -68,27 +72,34 @@ if __name__ == '__main__':
 
     parser.add_argument("--data_dir", help="the root of csv files",
                         type=str, default=os.path.join(os.getcwd(), 'data'))
-    parser.add_argument("--split_ratio", help="split data to training and validation data",
-                        type=str, default=0.8)
     args = parser.parse_args()
 
     print args
 
+    best_f1 = 0.
+    best_params = {}
 
     for num_feature in [20, 30, 40, 50, 60]:
         for split_ratio in [0.8, 0.7]:
-            training_x, training_y, validation_x, validation_y, test_feature_vecs, test_ids = prepare_data(args.data_dir,
-                                                                                                   down_sample_rate=1.0,
-                                                                                                   num_feature=num_feature,
-                                                                                                   split_ratio=split_ratio)
+            training_x, training_y, validation_x, validation_y, test_feature_vecs, test_ids = prepare_data(
+                data_dir=args.data_dir,
+                down_sample_rate=1.0,
+                num_feature=num_feature,
+                split_ratio=split_ratio)
             for svm_kernel in ['linear', 'poly', 'rbf', 'sigmoid']:
-                for class_weight in [{1:3}, {1:5}, {1:10}, {1:20}, {1:50}]:
-                    print '...... num_feature: %d, split_ratio: %f, svm_kernel:%s,  classweight :%s' % \
+                for class_weight in [{1: 3}, {1: 5}, {1: 10}, {1: 20}, {1: 15}, {1: 20}, {1: 25}]:
+                    print '\n\n...... num_feature: %d, split_ratio: %f, svm_kernel:%s,  classweight :%s' % \
                           (num_feature, split_ratio, svm_kernel, class_weight)
-                    train_svm(datas=[training_x, training_y, validation_x, validation_y, test_feature_vecs, test_ids],
+                    accuracy, precision, recall, f1 = train_svm(
+                        datas=[training_x, training_y, validation_x, validation_y, test_feature_vecs, test_ids],
                         svm_kernel=svm_kernel,
                         class_weight=class_weight)
+                    if best_f1 < f1:
+                        best_f1 = f1
+                        best_params = {'num_feature': num_feature,
+                                       'split_ratio': split_ratio,
+                                       'svm_kernel': svm_kernel,
+                                       'class_weight': class_weight}
 
-
-
-
+    print '...... done ......'
+    print 'best params : %s ' % best_params
