@@ -56,7 +56,7 @@ class VariationalAutoencoder(object):
         self.sess = tf.InteractiveSession()
         self.sess.run(init)
 
-    def _create_network(self):
+    def _create_network(self, epsilon=1.0):
         network_weights = self._initialize_weights(**self.network_architecture)
         # use recognition network to determine mean and log variance of Gaussian distribution in latent space
         self.z_mean, self.z_log_sigma_sq = \
@@ -64,7 +64,8 @@ class VariationalAutoencoder(object):
                                       network_weights['biases_recog'])
         # draw one sample z from gaussian distribution
         n_z = self.network_architecture['n_z']
-        eps = tf.random_normal((self.batch_size, n_z), 0, 1, dtype=tf.float32)
+        # sample epsilon from N(0, 1),here the Sigma of gaussian distrubution can be setting another value
+        eps = tf.random_normal((self.batch_size, n_z), 0, epsilon, dtype=tf.float32)
 
         # z = mu + sigma * epsilon (reparameterization trick)
         self.z = tf.add(self.z_mean,
