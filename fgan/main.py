@@ -19,7 +19,7 @@ if __name__ == '__main__':
     image_height, image_width, image_channels = 28, 28, 1
     z_dim = 100
     batch_size =64
-    f_divergence = 'person'
+    f_divergence = 'pearson'
     assert(f_divergence in ['pearson', 'kl', 'rkl',
                             'squared_hellinger', 'jensen_shannon',
                             'original_gan'])
