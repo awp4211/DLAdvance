@@ -2,7 +2,7 @@ import tensorflow as tf
 import os
 
 from utils import mkdir_p
-from vaegan_celeba import vaegan_celeba
+from stacked_vaegan_celeba import stacked_vaegan_celeba
 from data_celebA import CelebA
 
 flags = tf.app.flags
@@ -16,15 +16,15 @@ flags.DEFINE_integer("operation", 0, "the init of learn rate")
 
 flags.DEFINE_string("data_path", "MNIST_DATA", "MNIST dataset path")
 flags.DEFINE_string("gpu", "0", "use %no gpu to run")
-
+flags.DEFINE_integer("num_vae", 2, "number of vaes")
 
 FLAGS = flags.FLAGS
 
 if __name__ == "__main__":
 
-    root_log_dir = "./runtime/logs/celeba_vaegan"
-    vaegan_checkpoint_dir = "./runtime/models/celeba_vaegan/celeba_model.ckpt"
-    sample_path = "./runtime/samples/celeba_vaegan"
+    root_log_dir = "./runtime/logs/stacked_celeba_vaegan"
+    vaegan_checkpoint_dir = "./runtime/models/stacked_celeba_vaegan/celeba_model.ckpt"
+    sample_path = "./runtime/samples/stacked_celeba_vaegan"
 
     mkdir_p(root_log_dir)
     mkdir_p(vaegan_checkpoint_dir)
@@ -44,21 +44,15 @@ if __name__ == "__main__":
     data_list = CelebA().load_celebA(image_path=FLAGS.path)
     print "the num of dataset", len(data_list)
 
-    vaeGan = vaegan_celeba(batch_size=batch_size,
-                           max_epoch=max_epoch,
-                           model_path=model_path,
-                           data=data_list,
-                           latent_dim=latent_dim,
-                           sample_path=sample_path,
-                           log_dir=root_log_dir,
-                           learnrate_init=learn_rate_init)
+    vaeGan = stacked_vaegan_celeba(batch_size=batch_size,
+                                   max_epoch=max_epoch,
+                                   model_path=model_path,
+                                   data=data_list,
+                                   latent_dim=latent_dim,
+                                   sample_path=sample_path,
+                                   log_dir=root_log_dir,
+                                   learnrate_init=learn_rate_init,
+                                   num_vae=FLAGS.num_vae)
 
-    if FLAGS.operation == 0:
-
-        vaeGan.build_model_vaegan()
-        vaeGan.train()
-
-    else:
-
-        vaeGan.build_model_vaegan()
-        vaeGan.test()
+    vaeGan.build_model_vaegan()
+    vaeGan.train()
