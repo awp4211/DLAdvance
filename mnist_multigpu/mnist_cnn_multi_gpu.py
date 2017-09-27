@@ -68,7 +68,8 @@ def average_gradients(tower_grads):
         # keep in mind that the variables are redundant because they are shared
         # accross towers. So we will just return the first tower's pointer to the variables
         v = grad_and_vars[0][1]
-        gran_and_var = (grad, v)
+        grad_and_var = (grad, v)
+        average_grads.append(grad_and_var)
     return average_grads
 
 
@@ -82,7 +83,7 @@ def feed_all_gpu(input_dict, models, payload_per_gpu, batch_x, batch_y):
     return input_dict
 
 
-def multi_gpu(num_gpu):
+def multi_gpu(num_gpu, n_epoch=10):
     batch_size = 128*num_gpu
     mnist_data_path = os.path.join(os.path.dirname(os.getcwd()), 'MNIST_DATA')
     mnist = input_data.read_data_sets(mnist_data_path, one_hot=True)
@@ -93,22 +94,23 @@ def multi_gpu(num_gpu):
             learning_rate = tf.placeholder(tf.float32, shape=[])
             opt = tf.train.AdamOptimizer(learning_rate=learning_rate)
 
-            print "building model on gpu tower ..."
+            print "[x] build model on gpu tower ..."
             models = []
             for gpu_id in range(num_gpu):
                 with tf.device("/gpu:%d" % gpu_id):
-                    print "tower:%d ..." % gpu_id
+                    print "[x] tower:%d ..." % gpu_id
                     with tf.name_scope("tower_%d" % gpu_id):
-                        with tf.variable_scope("cpu_variables", reuse=gpu_id>0):
+                        with tf.variable_scope("cpu_variables", reuse=gpu_id > 0):
                             x = tf.placeholder(tf.float32, [None, 784])
                             y = tf.placeholder(tf.float32, [None, 10])
                             pred = build_model(x)
                             loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=y))
                             grads = opt.compute_gradients(loss)
                             models.append((x, y, pred, loss, grads))
-            print "build model on gpu tower done"
+            print "[x] build model on gpu tower done"
 
-            print "reduce model on cpu ..."
+            print "[x] reduce model on cpu ..."
+            print len(models)
             tower_x, tower_y, tower_preds, tower_losses, tower_grads = zip(*models)
             aver_loss_op = tf.reduce_mean(tower_losses)
             apply_gradient_op = opt.apply_gradients(average_gradients(tower_grads))
@@ -117,12 +119,12 @@ def multi_gpu(num_gpu):
             all_pred = tf.reshape(tf.stack(tower_preds, 0), [-1, 10])
             correct_pred = tf.equal(tf.argmax(all_y, 1), tf.argmax(all_pred, 1))
             accuracy = tf.reduce_mean(tf.cast(correct_pred, "float"))
-            print "reduce model on cpu done ..."
+            print "[x] reduce model on cpu done ..."
 
-            print "run train op ..."
+            print "[x] run train op ..."
             sess.run(tf.global_variables_initializer())
             lr = 0.01
-            for epoch in range(2):
+            for epoch in range(n_epoch):
                 start_time = time.time()
                 payload_per_gpu = batch_size / num_gpu
                 total_batch = int(mnist.train.num_examples/batch_size)
@@ -184,5 +186,7 @@ def multi_gpu(num_gpu):
 
 
 if __name__ == "__main__":
-    for num_gpu in range(4):
-        multi_gpu(num_gpu)
+    multi_gpu(1)
+    multi_gpu(2)
+    multi_gpu(3)
+    multi_gpu(4)
