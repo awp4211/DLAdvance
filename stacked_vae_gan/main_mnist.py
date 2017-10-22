@@ -1,3 +1,6 @@
+"""
+Code for training VAE-GAN model using MNIST dataset
+"""
 import tensorflow as tf
 import os
 
@@ -21,9 +24,9 @@ FLAGS = flags.FLAGS
 if __name__ == "__main__":
 
     #  python main.py --operation 0 --path your data path
-    root_log_dir = "./logs/mnist_vaegan"
-    vaegan_checkpoint_dir = "./models/mnist_vaegan/mnist_model.ckpt"
-    sample_path = "./samples/mnist_vaegan"
+    root_log_dir = ".runtime/logs/mnist_vaegan"
+    vaegan_checkpoint_dir = ".runtime/models/mnist_vaegan/mnist_model.ckpt"
+    sample_path = ".runtime/samples/mnist_vaegan"
 
     mkdir_p(root_log_dir)
     mkdir_p(vaegan_checkpoint_dir)
