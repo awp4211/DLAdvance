@@ -1,0 +1,1 @@
+# Tensorflow implementation of DCGAN on MNIST
